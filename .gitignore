@@ -1,0 +1,55 @@
+.DS_Store
+
+# dependencies
+node_modules/
+public/twilight_front_app/node_modules/
+
+# build outputs
+dist/
+.next/
+public/twilight_front_app/.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# logs and runtime files
+logs/
+*.log
+*.pid
+*.pid.lock
+
+# local data
+public/uploads/
+temp/
+
+# environment files
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+
+# editor files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.idea/
+
+# caches
+.npm/
+.pnpm-store/
+.eslintcache
+.stylelintcache
+.cache/
+.parcel-cache/
+.turbo/
+
+# test artifacts
+.nyc_output/
+
+docs/
+
