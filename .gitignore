@@ -51,7 +51,6 @@ temp/
 # test artifacts
 .nyc_output/
 
-docs/
 
 
 /src/generated/prisma
