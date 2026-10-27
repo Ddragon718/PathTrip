@@ -113,6 +113,9 @@ POST
 ### Description
 
 사용자는 이메일, 비밀번호, 닉네임을 입력하여 회원가입할 수 있다.
+일반 회원가입은 `USER` 역할로 생성되며 요청의 `role` 필드는 허용하지 않는다.
+`ADMIN`은 로컬 계정 생성 스크립트 등 서버 측 절차로만 부여한다. 현재는
+관리자 전용 API가 없으며 여행 소유권 검사는 역할과 무관하게 적용된다.
 
 ### Authentication
 
@@ -144,7 +147,8 @@ Body
   "data": {
     "id": 1,
     "email": "user@example.com",
-    "nickname": "pathtrip"
+    "nickname": "pathtrip",
+    "role": "USER"
   }
 }
 ```
@@ -210,7 +214,8 @@ Body
     "user": {
       "id": 1,
       "email": "user@example.com",
-      "nickname": "pathtrip"
+      "nickname": "pathtrip",
+      "role": "USER"
     }
   }
 }
@@ -270,7 +275,8 @@ Body
   "data": {
     "id": 1,
     "email": "user@example.com",
-    "nickname": "pathtrip"
+    "nickname": "pathtrip",
+    "role": "USER"
   }
 }
 ```
@@ -308,6 +314,11 @@ POST
 ### Description
 
 로그인한 사용자는 여행 일정을 생성할 수 있다.
+
+선택 필드 `destinationType`은 `DOMESTIC`(기본값) / `INTERNATIONAL`,
+`mapPreference`는 `AUTO`(기본값) / `KAKAO` / `GOOGLE`이다.
+자동 선택은 국내 카카오·해외 구글이며, 직접 선택한 지도는 여행 구분보다 우선한다.
+두 필드는 여행 목록·상세·수정 응답에도 포함된다.
 
 ### Authentication
 
@@ -498,6 +509,9 @@ PATCH
 ### Description
 
 로그인한 사용자는 자신이 생성한 여행 정보를 수정할 수 있다.
+
+`destinationType`, `mapPreference`도 선택적으로 변경할 수 있다.
+예: `{"destinationType":"INTERNATIONAL","mapPreference":"AUTO"}`.
 
 ### Authentication
 
@@ -890,6 +904,10 @@ Status
 
 ## 6.1 장소 키워드 검색
 
+> `provider=KAKAO`(기본값)는 카카오 Local API, `provider=GOOGLE`은 Google Places API (New)를 사용한다.
+> 각각 서버의 `KAKAO_MAP_REST_API_KEY`, `GOOGLE_PLACES_API_KEY` 설정이 필요하다.
+> 선택한 공급자가 실패해도 다른 공급자로 자동 전환하지 않는다.
+
 ### Method
 
 ```txt
@@ -915,6 +933,7 @@ JWT Required
 | Name | Type   | Required | Description |
 | ---- | ------ | -------- | ----------- |
 | q    | string | Y        | 검색 키워드      |
+| provider | string | N | `KAKAO` 또는 `GOOGLE`, 기본값 `KAKAO` |
 
 ### Success Response
 
@@ -1008,6 +1027,8 @@ Body
 ---
 
 ## 7.1 자동 동선 추천
+
+> MVP 추천은 저장된 좌표의 직선거리, 장소 우선순위, 선택한 테마를 사용한다. 출발 좌표를 받지 않으므로 첫 장소까지의 이동 거리와 시간은 0이다.
 
 ### Method
 

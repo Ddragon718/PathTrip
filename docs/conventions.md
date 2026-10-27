@@ -26,7 +26,7 @@ Node.js
 
 ### 선택 이유
 
-* NestJS 실행 환경
+* Express 실행 환경
 * 높은 생태계 활용성
 * JavaScript/TypeScript 기반 개발 가능
 
@@ -47,33 +47,33 @@ TypeScript
 
 ## Framework
 
-NestJS
+Express 5
 
 ### 선택 이유
 
-* 구조화된 아키텍처 제공
-* Dependency Injection 지원
-* 테스트 용이성
-* 대규모 프로젝트 확장성
+* 가벼운 HTTP 계층
+* 명시적인 미들웨어 구성
+* 기존 프로젝트 구조와의 호환성
+* 계층형 아키텍처 적용 가능
 
 ---
 
 ## ORM
 
-MikroORM
+Prisma
 
 ### 선택 이유
 
-* Entity 중심 설계
-* Unit Of Work 지원
-* Identity Map 지원
+* 스키마 기반 타입 생성
+* 타입 안전한 쿼리
+* 마이그레이션 지원
 * 관계형 도메인 모델링에 적합
 
 ---
 
 ## Database
 
-MySQL
+PostgreSQL
 
 ### 선택 이유
 
@@ -85,14 +85,13 @@ MySQL
 
 ## Validation
 
-class-validator
-class-transformer
+Zod
 
 ### 선택 이유
 
-* NestJS 공식 생태계
-* DTO 기반 검증 가능
-* Swagger 연동 용이
+* 런타임 입력 검증
+* TypeScript 타입 추론
+* 요청 스키마 재사용 가능
 
 ---
 
@@ -365,35 +364,34 @@ src/
 
 ---
 
-# 8. DTO 규칙
+# 8. 요청 타입 규칙
 
-모든 Request Body는 DTO 사용
+모든 Request Body는 Zod schema와 추론 타입을 사용한다.
 
 허용
 
 ```ts
-CreateTripDto
-UpdateTripDto
+createTripSchema
+UpdateTripInput
 ```
 
 금지
 
 ```ts
-@Post()
-create(@Body() body: any)
+const body: any = request.body
 ```
 
 ---
 
 # 9. Validation 규칙
 
-모든 입력 검증은 DTO에서 수행한다.
+모든 입력 검증은 Zod schema에서 수행한다.
 
 사용
 
 ```ts
-class-validator
-ValidationPipe
+Zod schema
+validate middleware
 ```
 
 금지
@@ -451,15 +449,16 @@ deletedAt
 
 ---
 
-# 11. MikroORM 규칙
+# 11. Prisma 규칙
 
-MikroORM은 Unit Of Work 패턴을 사용한다.
+Prisma schema를 데이터 모델의 단일 기준으로 사용한다.
 
 원칙
 
-* Entity 상태를 변경한다.
-* flush 시점에 DB 반영된다.
-* DB 직접 조작보다 Entity 중심 설계를 우선한다.
+* DB 접근은 Repository 계층에서 수행한다.
+* 복수 쓰기의 원자성이 필요하면 `$transaction`을 사용한다.
+* 스키마 변경 시 migration 파일을 함께 추가한다.
+* soft delete 대상 조회에는 `deletedAt: null`을 적용한다.
 
 ---
 
@@ -651,25 +650,17 @@ ISO-8601 사용
 
 ---
 
-# 20. Swagger 규칙
+# 20. API 문서 규칙
 
-모든 Public API는 Swagger 문서화
+모든 Public API는 `docs/api-spec.md`에 문서화한다.
 
-필수
+필수 항목
 
-```ts
-@ApiTags
-@ApiOperation
-@ApiResponse
-```
-
----
-
-인증 API
-
-```ts
-@ApiBearerAuth()
-```
+* HTTP method와 endpoint
+* 인증 여부
+* 요청 스키마
+* 성공 응답
+* 오류 코드
 
 추가
 
@@ -707,6 +698,16 @@ ConfigService
 ---
 
 # 23. Git 규칙
+
+## 커밋과 푸시
+
+- 한 커밋은 하나의 목적을 가진 동작 가능한 변경 묶음으로 구성한다.
+- 코드의 의존성을 확인하고 필요한 패키지 설정·lockfile·마이그레이션을 함께 포함한다.
+- 기능의 테스트와 문서는 해당 기능 커밋에 묶는다. 독립적인 수정은 분리한다.
+- 커밋 전 관련 테스트·빌드와 staged diff, 비밀정보 포함 여부를 확인한다.
+- 검증한 커밋은 작업 브랜치에 푸시하고 원격 반영을 확인한다.
+- `.env`, 비밀번호·API 키·토큰, 로컬 DB, 설치·빌드 결과물은 커밋하지 않는다.
+- Codex 작업 브랜치는 `codex/` 접두사를 사용하며, `main` 병합과 강제 푸시는 별도 요청 없이 하지 않는다.
 
 브랜치 전략
 
@@ -750,7 +751,7 @@ docs: requirements 문서 추가
 
 테스트 프레임워크
 
-Jest
+Node.js Test Runner
 
 ---
 

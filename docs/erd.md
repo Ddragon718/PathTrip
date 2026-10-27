@@ -1,7 +1,7 @@
 # PathTrip ERD 설계
 
 > 이 문서는 PathTrip 서비스의 데이터 모델과 Entity 간 관계를 정의한다.
-> 본 문서를 기준으로 MikroORM Entity와 MySQL Table을 설계한다.
+> 본 문서를 기준으로 Prisma Model과 PostgreSQL Table을 설계한다.
 
 ---
 
@@ -15,7 +15,7 @@
 * 각 Entity는 어떤 필드를 가지는가
 * Entity 간 관계는 어떻게 연결되는가
 * 어떤 필드에 제약 조건이 필요한가
-* MikroORM Entity 설계 시 어떤 구조를 기준으로 삼을 것인가
+* Prisma Model 설계 시 어떤 구조를 기준으로 삼을 것인가
 
 ---
 
@@ -93,6 +93,7 @@ User
 | email     | string      | Y        | Y      | 사용자 이메일     |
 | password  | string      | Y        | N      | 해싱된 비밀번호    |
 | nickname  | string      | Y        | N      | 사용자 닉네임     |
+| role      | UserRole    | Y        | N      | USER / ADMIN, 기본 USER |
 | createdAt | Date        | Y        | N      | 생성 시간       |
 | updatedAt | Date        | Y        | N      | 수정 시간       |
 | deletedAt | Date | null | N        | N      | 삭제 시간       |
@@ -129,6 +130,8 @@ User
 | userId    | number      | Y        | N      | 여행 소유자 ID   |
 | title     | string      | Y        | N      | 여행 제목       |
 | region    | string      | Y        | N      | 여행 지역       |
+| destinationType | DestinationType | Y | N | DOMESTIC / INTERNATIONAL, 기본 DOMESTIC |
+| mapPreference | MapPreference | Y | N | AUTO / KAKAO / GOOGLE, 기본 AUTO |
 | startDate | Date        | Y        | N      | 여행 시작일      |
 | endDate   | Date        | Y        | N      | 여행 종료일      |
 | createdAt | Date        | Y        | N      | 생성 시간       |
@@ -277,7 +280,7 @@ Route와 Place의 관계를 나타내며, 추천 동선 안에서 장소의 방�
 
 # 6. Enum / Constant 후보
 
-MVP에서는 MySQL enum 또는 코드 상수로 관리할 수 있다.
+MVP에서는 PostgreSQL enum과 TypeScript 상수로 관리한다.
 애플리케이션 코드에서는 TypeScript enum 대신 const object 사용을 우선한다.
 
 ---

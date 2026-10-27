@@ -7,6 +7,12 @@ public/twilight_front_app/node_modules/
 # build outputs
 dist/
 .next/
+apps/web/.next/
+apps/web/out/
+.expo/
+apps/mobile/.expo/
+apps/mobile/web-build/
+apps/mobile/build/
 public/twilight_front_app/.next/
 out/
 coverage/
