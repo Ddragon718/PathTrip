@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { request } from 'node:http';
+import { brotliCompressSync, gzipSync } from 'node:zlib';
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
@@ -101,6 +103,60 @@ test('허용 크기를 넘는 JSON 본문은 413을 반환한다', async () => {
     });
     assert.equal(response.status, 413);
     assert.equal((await response.json()).code, 'INVALID_INPUT');
+  });
+});
+
+test('압축된 JSON도 해제 후 본문 크기 제한을 적용한다', async () => {
+  await withServer(async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/v1/auth/signup`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'content-encoding': 'gzip',
+      },
+      body: gzipSync(JSON.stringify({ value: 'x'.repeat(1_100_000) })),
+    });
+    assert.equal(response.status, 413);
+    assert.equal((await response.json()).code, 'INVALID_INPUT');
+    assert.equal((await fetch(`${baseUrl}/health`)).status, 200);
+  });
+});
+
+test('압축 프레임 뒤에 늦게 도착하는 바이트가 서버를 종료시키지 않는다', async () => {
+  await withServer(async (baseUrl) => {
+    // Local regression fixture for the body-parser decompression lifecycle.
+    const frame = brotliCompressSync(Buffer.from('{}'));
+    let finishSending;
+    const sent = new Promise((resolve) => {
+      finishSending = resolve;
+    });
+    const response = new Promise((resolve, reject) => {
+      const req = request(
+        `${baseUrl}/api/v1/auth/signup`,
+        {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'content-encoding': 'br',
+          },
+        },
+        (res) => {
+          res.resume();
+          res.on('end', () => resolve(res.statusCode));
+          res.on('error', reject);
+        }
+      );
+      req.on('error', reject);
+      req.setTimeout(3000, () => req.destroy(new Error('Request timed out')));
+      req.write(frame);
+      setTimeout(() => {
+        req.end(Buffer.from('trailing-bytes'));
+        finishSending();
+      }, 50);
+    });
+    const [status] = await Promise.all([response, sent]);
+    assert.equal(status, 400);
+    assert.equal((await fetch(`${baseUrl}/health`)).status, 200);
   });
 });
 
