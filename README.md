@@ -37,3 +37,19 @@ npm run build --workspace @pathtrip/api-client
 - [개발·커밋 규칙](docs/conventions.md)
 
 운영 환경에서는 별도의 DB·강한 ACCESS_SECRET·HTTPS 주소를 사용하고 테스트 계정과 키를 배포하지 마세요.
+
+## 웹 클라이언트
+
+Next.js 웹에서 로그인, 여행·장소 관리, 동선 추천과 여행별 지도 선택을 사용할 수 있습니다.
+
+```bash
+npm run dev:web
+npm run build:all
+```
+
+http://localhost:3000에서 실행됩니다. apps/web/.env.example을 참고해 .env.local에 API 주소와 지도 키를 설정합니다.
+국내는 카카오맵, 해외는 Google Maps가 기본이며 사용자가 직접 선택할 수도 있습니다.
+지도 표시용 키가 없으면 안내 화면이 나오며, 서버 장소 검색 키는 별도로 설정합니다.
+미리보기는 메모리의 샘플 데이터이며 실제 저장을 확인하려면 로그인하세요.
+
+자세한 설정과 검증 방법은 [웹 실행 안내](apps/web/README.md)를 참고하세요.
