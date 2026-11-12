@@ -35,6 +35,7 @@ npm run build
 | --------------------- | ------------------------------------- | ------------------------------------------------------- |
 | 루트 `.env`           | `KAKAO_MAP_REST_API_KEY`              | 서버의 카카오 장소 검색·주소 변환                       |
 | 루트 `.env`           | `GOOGLE_PLACES_API_KEY`               | 서버의 Google Places API (New) 검색                     |
+| 루트 `.env`           | `GOOGLE_GEOCODING_API_KEY`            | 지역 ID 조회 및 현재 위치의 방문 지역 인증              |
 | `apps/web/.env.local` | `NEXT_PUBLIC_KAKAO_MAP_JS_KEY`        | 웹 및 iOS WebView의 카카오 지도                         |
 | `apps/web/.env.local` | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`     | 웹 Google Maps JavaScript API                           |
 | `apps/web/.env.local` | `NEXT_PUBLIC_GOOGLE_MAP_ID`           | Google JavaScript 지도 ID. 미설정 시 개발용 DEMO_MAP_ID |
@@ -51,12 +52,13 @@ REST API 키를 JavaScript 키 자리에 넣지 마세요.
 
 ### Google
 
-Maps JavaScript API, Maps SDK for iOS, Places API (New)를 필요한 프로젝트에서 활성화합니다.
+Maps JavaScript API, Maps SDK for iOS, Places API (New), Geocoding API를 필요한 프로젝트에서 활성화합니다.
 Google Cloud의 결제·할당량 설정도 확인하세요. 키는 웹/서버/iOS용을 분리합니다.
 
 - 웹 키: HTTP referrer를 개발·운영 웹 도메인으로 제한하고 Maps JavaScript API만 허용합니다.
 - iOS 키: 앱 번들 ID `com.pathtrip.app`으로 제한하고 Maps SDK for iOS를 허용합니다.
 - 서버 키: Places API (New)로 제한합니다. 고정 송신 IP가 있는 배포 환경이면 IP 제한도 설정합니다.
+- 방문 인증 서버 키: 별도 키를 Geocoding API로 제한합니다.
 - 공개 접두사(`NEXT_PUBLIC_`, `EXPO_PUBLIC_`) 키는 사용자에게 노출되는 키입니다. 서버 검색 키는 여기에 넣지 마세요.
 
 Google iOS 설정은 `apps/mobile/app.config.ts`의 `react-native-maps` 플러그인으로 전달합니다.
