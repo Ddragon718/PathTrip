@@ -11,18 +11,21 @@
   "main": "dist/server.js",
   "workspaces": [
     "packages/*",
-    "apps/web"
+    "apps/*"
   ],
   "overrides": {
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3"
   },
   "scripts": {
     "dev": "TS_NODE_TRANSPILE_ONLY=true node --watch --no-warnings=ExperimentalWarning --loader ts-node/esm src/server.ts",
     "dev:web": "npm run dev --workspace @pathtrip/web",
+    "dev:mobile": "npm run start --workspace @pathtrip/mobile",
+    "preview:app": "npm run preview:web --workspace @pathtrip/mobile",
     "start:web": "npm run start --workspace @pathtrip/web",
     "build": "prisma generate && tsc -p tsconfig.json",
-    "build:clients": "npm run build --workspace @pathtrip/api-client && npm run build --workspace @pathtrip/web",
+    "build:clients": "npm run build --workspace @pathtrip/api-client && npm run build --workspace @pathtrip/web && npm run typecheck --workspace @pathtrip/mobile",
     "build:all": "npm run build && npm run build:clients",
     "start": "node dist/server.js",
     "prestart": "npm run build",
@@ -67,6 +70,7 @@
     "prisma": "6.12.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-native": "0.86.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }

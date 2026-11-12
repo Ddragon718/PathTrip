@@ -8,5 +8,7 @@
 - [ERD](erd.md)
 - [개발 컨벤션](conventions.md)
 - [로컬 계정과 로그인 테스트](local-testing.md)
+- [카카오·Google 지도 연결 및 검증](maps-setup.md)
+- [의존성 보안 검증과 남은 항목](dependency-security.md)
 
 문서 우선순위는 `requirements.md` → `api-spec.md` → `erd.md` → 실제 구현 순입니다. 구현 중 확인된 기술 스택 차이는 현재 코드 기준으로 정리했습니다.
