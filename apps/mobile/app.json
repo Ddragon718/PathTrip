@@ -21,6 +21,18 @@
     "plugins": [
       "expo-secure-store",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "선택한 지역의 방문 인증을 위해 버튼을 누를 때 현재 위치를 확인합니다. 정확한 위치는 서버에 저장하지 않습니다.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false,
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/icon.png",

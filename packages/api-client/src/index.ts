@@ -180,6 +180,29 @@ export interface CreatePlaceInput {
   stayTimeMinutes?: number;
 }
 
+export function discoveryPlaceInput(place: DiscoveryPlace): CreatePlaceInput {
+  const metadata = {
+    category: place.category,
+    priority: 'MEDIUM' as const,
+    stayTimeMinutes: 60,
+  };
+  if (place.googlePlaceId)
+    return {
+      ...metadata,
+      googlePlaceId: place.googlePlaceId,
+      name: 'Google Maps 장소',
+      latitude: 0,
+      longitude: 0,
+    };
+  return {
+    ...metadata,
+    name: place.name,
+    ...(place.address ? { address: place.address } : {}),
+    latitude: place.latitude,
+    longitude: place.longitude,
+  };
+}
+
 export interface RecommendRouteInput {
   startTime: string;
   transportType: TransportType;

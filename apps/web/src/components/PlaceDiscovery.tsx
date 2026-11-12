@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import {
   discoveryCategories,
+  discoveryPlaceInput,
   previewDiscovery,
   type CreatePlaceInput,
   type DiscoveryInput,
@@ -18,6 +19,7 @@ type Props = {
   isDemo: boolean;
   api: PathTripClient;
   onSubmit: (input: CreatePlaceInput) => Promise<void>;
+  initialSearch?: { name: string; category: PlaceCategory } | null;
 };
 const message = (error: unknown) =>
   error instanceof Error ? error.message : '다시 시도해 주세요.';
@@ -28,12 +30,15 @@ export function PlaceDiscovery({
   isDemo,
   api,
   onSubmit,
+  initialSearch,
 }: Props) {
-  const [category, setCategory] = useState<PlaceCategory>('TOURIST_SPOT');
+  const [category, setCategory] = useState<PlaceCategory>(
+    initialSearch?.category ?? 'TOURIST_SPOT'
+  );
   const [sort, setSort] =
     useState<NonNullable<DiscoveryInput['sort']>>('REVIEWS');
-  const [query, setQuery] = useState('');
-  const [keyword, setKeyword] = useState('');
+  const [query, setQuery] = useState(initialSearch?.name ?? '');
+  const [keyword, setKeyword] = useState(initialSearch?.name ?? '');
   const [attempt, setAttempt] = useState(0);
   const [data, setData] = useState<DiscoveryResult | null>(null);
   const [error, setError] = useState('');
@@ -177,18 +182,7 @@ export function PlaceDiscovery({
                 onClick={async () => {
                   setSaving(place.id);
                   try {
-                    await onSubmit({
-                      name: place.name,
-                      address: place.address,
-                      latitude: place.latitude,
-                      longitude: place.longitude,
-                      category,
-                      ...(place.googlePlaceId
-                        ? { googlePlaceId: place.googlePlaceId }
-                        : {}),
-                      priority: 'MEDIUM',
-                      stayTimeMinutes: 60,
-                    });
+                    await onSubmit(discoveryPlaceInput(place));
                   } catch (caught) {
                     setError(message(caught));
                   } finally {

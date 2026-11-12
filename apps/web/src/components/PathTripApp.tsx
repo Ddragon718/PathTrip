@@ -1,5 +1,5 @@
 'use client';
-import { PlaceDiscovery } from './PlaceDiscovery';
+import { PlaceExplorer } from './PlaceExplorer';
 
 import {
   ApiError,
@@ -1486,7 +1486,7 @@ function AddPlaceModal({
           <CloseIcon />
         </button>
         <h2 id="discovery-title">어디에 가고 싶나요?</h2>
-        <PlaceDiscovery
+        <PlaceExplorer
           region={region}
           provider={provider}
           isDemo={isDemo}

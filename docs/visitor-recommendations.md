@@ -20,3 +20,9 @@ API는 Bearer 인증 필수. 목록은 지역·분류별 페이지당 최대 20�
 `RegionClient`는 외부 통신과 DTO 검증, `CommunityService`는 인증·권한·만료 정책, `CommunityRepository`는 DB 접근을 담당한다. 좌표를 저장하는 컬럼은 없다. `npm run prisma:deploy`로 마이그레이션을 적용하고 API를 재시작한다. `tests/unit/community.test.mjs`에서 지역 불일치·만료·미래 위치·탈퇴 계정·관리자 권한·좌표 미저장을 검증한다.
 
 공식 참조: [Google reverse geocoding](https://developers.google.com/maps/documentation/geocoding/requests-reverse-geocoding), [Geocoding 정책](https://developers.google.com/maps/documentation/geocoding/policies).
+
+## 웹·앱 화면
+
+장소 추가의 ‘장소 추천 / 방문자 추천’ 탭으로 전환한다. 방문자 탭은 인증할 지역의 표시 이름을 먼저 보여준다. 위치 전송 동의 후 버튼을 눌렀을 때만 위치를 가져오며, iOS는 foreground 권한만 요청하고 웹은 브라우저 위치 API를 사용한다. 권한 거부·시간 초과·정확도 부족·지역 불일치 오류를 보여준다. 인증 만료 시 작성 폼을 닫고 재인증을 안내한다.
+
+작성 폼에는 장소명, 선택 주소, 10자 이상 추천 이유를 입력한다. 게시글에서 장소 검색으로 이동해 공급자의 실제 장소를 선택한 뒤 여행에 담는다. 게시글의 사용자 입력을 Google 장소 정보로 자동 복사하지 않는다. 삭제는 확인 창을 거친다. 페이지 이동·빈 상태·다시 불러오기를 제공한다. 샘플 모드에서는 실제 글이나 인증을 가장하지 않는다.

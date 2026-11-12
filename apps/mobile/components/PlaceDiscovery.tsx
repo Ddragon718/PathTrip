@@ -3,13 +3,13 @@ import {
   ActivityIndicator,
   Linking,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import {
   discoveryCategories,
+  discoveryPlaceInput,
   previewDiscovery,
   type CreatePlaceInput,
   type DiscoveryInput,
@@ -19,6 +19,7 @@ import {
   type PlaceCategory,
 } from '@pathtrip/api-client';
 import { AppPressable as Pressable } from './AppPressable';
+import { discoveryStyles as s } from './discovery-styles';
 
 type Props = {
   region: string;
@@ -26,6 +27,7 @@ type Props = {
   isDemo: boolean;
   api: PathTripClient;
   onSubmit: (input: CreatePlaceInput) => Promise<void>;
+  initialSearch?: { name: string; category: PlaceCategory } | null;
 };
 const message = (error: unknown) =>
   error instanceof Error ? error.message : '다시 시도해 주세요.';
@@ -36,12 +38,15 @@ export function PlaceDiscovery({
   isDemo,
   api,
   onSubmit,
+  initialSearch,
 }: Props) {
-  const [category, setCategory] = useState<PlaceCategory>('TOURIST_SPOT');
+  const [category, setCategory] = useState<PlaceCategory>(
+    initialSearch?.category ?? 'TOURIST_SPOT'
+  );
   const [sort, setSort] =
     useState<NonNullable<DiscoveryInput['sort']>>('REVIEWS');
-  const [query, setQuery] = useState('');
-  const [keyword, setKeyword] = useState('');
+  const [query, setQuery] = useState(initialSearch?.name ?? '');
+  const [keyword, setKeyword] = useState(initialSearch?.name ?? '');
   const [attempt, setAttempt] = useState(0);
   const [data, setData] = useState<DiscoveryResult | null>(null);
   const [error, setError] = useState('');
@@ -213,18 +218,7 @@ export function PlaceDiscovery({
               onPress={async () => {
                 setSaving(place.id);
                 try {
-                  await onSubmit({
-                    name: place.name,
-                    address: place.address,
-                    latitude: place.latitude,
-                    longitude: place.longitude,
-                    category,
-                    ...(place.googlePlaceId
-                      ? { googlePlaceId: place.googlePlaceId }
-                      : {}),
-                    priority: 'MEDIUM',
-                    stayTimeMinutes: 60,
-                  });
+                  await onSubmit(discoveryPlaceInput(place));
                 } catch (caught) {
                   setError(message(caught));
                 } finally {
@@ -242,73 +236,3 @@ export function PlaceDiscovery({
     </View>
   );
 }
-
-export const discoveryStyles = StyleSheet.create({
-  root: { gap: 14 },
-  heading: { fontSize: 19, fontWeight: '800', color: '#173E35' },
-  muted: { fontSize: 13, color: '#718078', lineHeight: 20 },
-  chips: { flexDirection: 'row', gap: 8, paddingVertical: 4 },
-  chip: {
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#DFDED7',
-    paddingHorizontal: 18,
-    minHeight: 46,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  smallChip: {
-    padding: 10,
-    minHeight: 44,
-    borderRadius: 16,
-    justifyContent: 'center',
-  },
-  active: { backgroundColor: '#D7EA8A', borderColor: '#D7EA8A' },
-  chipText: { color: '#173E35', fontWeight: '700', fontSize: 13 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#DFDED7',
-    borderRadius: 14,
-    padding: 14,
-    minHeight: 48,
-    color: '#173E35',
-    backgroundColor: '#FFF',
-  },
-  button: {
-    minHeight: 46,
-    padding: 13,
-    borderRadius: 14,
-    backgroundColor: '#173E35',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  white: { color: '#fff', fontWeight: '700', fontSize: 13 },
-  note: { fontSize: 12, lineHeight: 18, color: '#718078' },
-  empty: { padding: 20, gap: 14, alignItems: 'center' },
-  error: { color: '#B34B31', lineHeight: 21 },
-  card: {
-    padding: 17,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#DFDED7',
-    backgroundColor: '#FFFFFF',
-    gap: 12,
-  },
-  number: {
-    backgroundColor: '#F5F1E8',
-    width: 32,
-    height: 32,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  copy: { flex: 1, gap: 4 },
-  name: { fontSize: 16, fontWeight: '800', color: '#173E35' },
-  stats: { color: '#28584C', fontSize: 13 },
-  google: { fontSize: 12, fontWeight: '400', color: '#5E5E5E' },
-  link: { minHeight: 44, flex: 1, justifyContent: 'center' },
-  add: { marginLeft: 'auto' },
-});
-const s = discoveryStyles;

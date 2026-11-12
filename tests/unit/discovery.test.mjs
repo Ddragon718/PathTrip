@@ -13,6 +13,7 @@ import { tripRepository } from '../../dist/modules/trips/trip.repository.js';
 import {
   createPathTripClient,
   previewDiscovery,
+  discoveryPlaceInput,
 } from '../../packages/api-client/dist/index.js';
 import { env } from '../../dist/config/env.js';
 
@@ -178,6 +179,23 @@ test('미리보기는 지역이 다른 샘플이나 가짜 리뷰 수를 표시�
     )
   );
   assert.equal(previewDiscovery({ ...query, region: '파리' }).items.length, 0);
+});
+
+test('추천 담기는 빈 주소를 생략하고 Google 공급자 콘텐츠 대신 ID만 보낸다', () => {
+  const sample = previewDiscovery(query).items[0];
+  assert.equal(
+    discoveryPlaceInput({ ...sample, address: '' }).address,
+    undefined
+  );
+  const input = discoveryPlaceInput({
+    ...sample,
+    source: 'GOOGLE',
+    googlePlaceId: 'abc',
+  });
+  assert.equal(input.name, 'Google Maps 장소');
+  assert.equal(input.googlePlaceId, 'abc');
+  assert.equal(input.address, undefined);
+  assert.equal(input.latitude, 0);
 });
 
 test('공통 클라이언트가 지역과 분류를 URL 인코딩하고 인증을 전달한다', async (t) => {

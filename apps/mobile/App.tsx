@@ -18,7 +18,7 @@ import {
   type User,
 } from '@pathtrip/api-client';
 import DateTimePicker from './components/AppDatePicker';
-import { PlaceDiscovery } from './components/PlaceDiscovery';
+import { PlaceExplorer } from './components/PlaceExplorer';
 import { AppPressable as Pressable } from './components/AppPressable';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
@@ -1415,7 +1415,7 @@ function AddPlaceModal({
       }
     >
       {visible && (
-        <PlaceDiscovery
+        <PlaceExplorer
           region={region}
           provider={provider}
           isDemo={isDemo}
