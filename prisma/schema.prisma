@@ -48,34 +48,36 @@ enum UserRole {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique
-  passwordHash String    @map("password_hash")
-  nickname     String
-  role         UserRole  @default(USER)
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
-  deletedAt    DateTime? @map("deleted_at")
-  trips        Trip[]
+  id                     Int                     @id @default(autoincrement())
+  email                  String                  @unique
+  passwordHash           String                  @map("password_hash")
+  nickname               String
+  role                   UserRole                @default(USER)
+  createdAt              DateTime                @default(now()) @map("created_at")
+  updatedAt              DateTime                @updatedAt @map("updated_at")
+  deletedAt              DateTime?               @map("deleted_at")
+  trips                  Trip[]
+  regionVisits           RegionVisit[]
+  visitorRecommendations VisitorRecommendation[]
 
   @@map("users")
 }
 
 model Trip {
-  id        Int       @id @default(autoincrement())
-  userId    Int       @map("user_id")
-  title     String
-  region    String
+  id              Int             @id @default(autoincrement())
+  userId          Int             @map("user_id")
+  title           String
+  region          String
   destinationType DestinationType @default(DOMESTIC) @map("destination_type")
-  mapPreference MapPreference @default(AUTO) @map("map_preference")
-  startDate DateTime  @map("start_date") @db.Date
-  endDate   DateTime  @map("end_date") @db.Date
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  places    Place[]
-  routes    Route[]
+  mapPreference   MapPreference   @default(AUTO) @map("map_preference")
+  startDate       DateTime        @map("start_date") @db.Date
+  endDate         DateTime        @map("end_date") @db.Date
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  deletedAt       DateTime?       @map("deleted_at")
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  places          Place[]
+  routes          Route[]
 
   @@index([userId, deletedAt])
   @@index([startDate])
@@ -139,4 +141,36 @@ model RoutePlace {
   @@unique([routeId, placeId])
   @@index([placeId])
   @@map("route_places")
+}
+
+model RegionVisit {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  regionId   String   @map("region_id")
+  verifiedAt DateTime @map("verified_at")
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, regionId])
+  @@map("region_visits")
+}
+
+model VisitorRecommendation {
+  id         Int           @id @default(autoincrement())
+  userId     Int           @map("user_id")
+  regionId   String        @map("region_id")
+  category   PlaceCategory
+  placeName  String        @map("place_name")
+  address    String?
+  note       String
+  verifiedAt DateTime      @map("verified_at")
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+  deletedAt  DateTime?     @map("deleted_at")
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([regionId, category, deletedAt, createdAt])
+  @@map("visitor_recommendations")
 }

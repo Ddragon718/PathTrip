@@ -120,6 +120,46 @@ export interface DiscoveryResult {
   note: string;
 }
 
+export interface VisitLocation {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  capturedAt: string;
+}
+export interface VisitVerification {
+  verifiedAt: string;
+  expiresAt: string;
+}
+export interface CommunityRegion {
+  id: string;
+  label: string;
+}
+export interface VisitorRecommendation {
+  id: number;
+  placeName: string;
+  address: string | null;
+  category: PlaceCategory;
+  note: string;
+  author: string;
+  verifiedAt: string;
+  createdAt: string;
+  canDelete: boolean;
+}
+export interface VisitorRecommendationList {
+  items: VisitorRecommendation[];
+  page: number;
+  totalPages: number;
+  total: number;
+  verification: { expiresAt: string } | null;
+}
+export interface CreateVisitorRecommendation {
+  regionId: string;
+  category: PlaceCategory;
+  placeName: string;
+  address?: string;
+  note: string;
+}
+
 export interface CreateTripInput {
   title: string;
   region: string;
@@ -288,6 +328,32 @@ export const createPathTripClient = ({
       request<DiscoveryResult>(
         `/api/v1/discovery?${new URLSearchParams({ region: input.region, category: input.category, provider: input.provider, sort: input.sort ?? 'REVIEWS', q: input.q ?? '' })}`
       ),
+    resolveCommunityRegion: (query: string) =>
+      request<CommunityRegion>(
+        `/api/v1/community/regions?query=${encodeURIComponent(query)}`
+      ),
+    verifyRegionVisit: (regionId: string, location: VisitLocation) =>
+      request<VisitVerification>('/api/v1/community/visits', {
+        method: 'POST',
+        body: JSON.stringify({ regionId, ...location }),
+      }),
+    listVisitorRecommendations: (
+      regionId: string,
+      category: PlaceCategory,
+      page = 1
+    ) =>
+      request<VisitorRecommendationList>(
+        `/api/v1/community/recommendations?${new URLSearchParams({ regionId, category, page: String(page) })}`
+      ),
+    createVisitorRecommendation: (input: CreateVisitorRecommendation) =>
+      request<{ id: number }>('/api/v1/community/recommendations', {
+        method: 'POST',
+        body: JSON.stringify(input),
+      }),
+    deleteVisitorRecommendation: (id: number) =>
+      request<void>(`/api/v1/community/recommendations/${id}`, {
+        method: 'DELETE',
+      }),
     recommendRoute: (tripId: number, input: RecommendRouteInput) =>
       request<RouteRecommendation>(`/api/v1/trips/${tripId}/routes/recommend`, {
         method: 'POST',

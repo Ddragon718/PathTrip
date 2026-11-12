@@ -28,6 +28,7 @@ const envSchema = z.object({
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(4).max(15).default(10),
   KAKAO_MAP_REST_API_KEY: z.string().optional(),
   GOOGLE_PLACES_API_KEY: z.string().optional(),
+  GOOGLE_GEOCODING_API_KEY: z.string().optional(),
   DEBUG_MODE: booleanFromString,
 });
 

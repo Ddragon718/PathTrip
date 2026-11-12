@@ -5,6 +5,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { discoveryRouter } from './modules/discovery/discovery.route.js';
+import { communityRouter } from './modules/community/community.route.js';
 import { env } from './config/env.js';
 import {
   errorHandler,
@@ -58,6 +59,7 @@ export const createApp = () => {
   app.use('/api/v1/places', placeRouter);
   app.use('/api/v1/maps', mapsRouter);
   app.use('/api/v1/discovery', discoveryRouter);
+  app.use('/api/v1/community', communityRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

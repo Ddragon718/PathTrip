@@ -1301,3 +1301,18 @@ Query: `region`(1–100자, 필수), `category`(TOURIST_SPOT/RESTAURANT/CAFE/PHO
 성공: `{ success: true, data: { items: [{ id, name, address, latitude, longitude, category, source, rating, reviewCount, sourceUrl, attributions, googlePlaceId? }], sort, note } }`. 평점·리뷰 수가 없으면 `null`. 카카오는 항상 RELEVANCE. 오류: INVALID_INPUT(400), UNAUTHORIZED(401), MAP_API_ERROR(502 외부 오류/503 키 미설정), 429 요청 제한.
 
 장소 생성 `POST /api/v1/trips/:tripId/places`에 선택 필드 `googlePlaceId`(1–256자 영숫자/밑줄/하이픈)를 추가한다. 기존 필수 입력은 동일하다. ID가 있으면 공급자 정보를 조회해 유효성을 확인하고 이름·주소·좌표 대신 ID만 영구 저장한다. 장소 상세/여행 상세에는 최신 정보 및 `googlePlaceId`, `attributions`를 반환한다. 조회 실패 시 `locationUnavailable: true`이며 좌표를 사용하면 안 된다. Google 장소의 이름/주소/좌표 수정은 INVALID_INPUT(400). 동선 계산은 최신 위치를 가져오지 못하면 MAP_API_ERROR로 중단한다.
+# 지역 방문자 추천 API
+
+모두 Bearer 인증 필수. 공통 오류는 INVALID_INPUT(400), UNAUTHORIZED(401), USER_NOT_FOUND(404), 429 요청 제한. 전체 분당 60회, 인증/등록 각각 분당 5회 IP 제한이다. 날짜는 ISO-8601 UTC다.
+
+| Method / endpoint | 요청 | 성공 data | 추가 오류 |
+| --- | --- | --- | --- |
+| GET `/api/v1/community/regions` | query: `query` 1–100자 | `{ id, label }` 지역 ID와 표시 이름 | REGION_NOT_FOUND(404), MAP_API_ERROR(502/503) |
+| POST `/api/v1/community/visits` | `{ regionId, latitude, longitude, accuracy, capturedAt }` | `{ verifiedAt, expiresAt }` | LOCATION_EXPIRED(400), LOCATION_NOT_IN_REGION(403), MAP_API_ERROR(502/503) |
+| GET `/api/v1/community/recommendations` | query: `regionId`, `category`, `page=1`, `limit=20`(최대 20) | `{ items, page, totalPages, total, verification }` | — |
+| POST `/api/v1/community/recommendations` | `{ regionId, category, placeName, address?, note }` | 201 `{ id }` | VISIT_VERIFICATION_REQUIRED(403) |
+| DELETE `/api/v1/community/recommendations/:id` | 양의 정수 ID | 204(본문 없음) | NOT_FOUND(404, 없거나 삭제 권한 없음) |
+
+위치는 위도 -90~90, 경도 -180~180, 정확도 0~100m이며 측정 후 2분 이내여야 한다. 인증 유효기간은 24시간. `regionId`는 지역 조회로 얻은 Google place ID(최대 256자)다. `category`는 장소 추천과 같은 6개 분류. `placeName` 1–150자, `address` 선택 1–300자, `note` 10–1000자. 인증 여부·작성자 ID를 본문에 보내면 거부한다.
+
+목록 item: `{ id, placeName, address, category, note, author, verifiedAt, createdAt, canDelete }`. `verification`은 요청 회원의 현재 지역 인증 `{ expiresAt }` 또는 null이며 만료된 인증을 반환하지 않는다. 방문자 글은 최신순, 자신의 글 또는 관리자 계정만 삭제 가능. 정확한 위치는 저장·응답하지 않는다. 모든 성공은 204를 제외하고 `{ success: true, data }` 형식이다.
