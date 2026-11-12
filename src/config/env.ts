@@ -29,6 +29,8 @@ const envSchema = z.object({
   KAKAO_MAP_REST_API_KEY: z.string().optional(),
   GOOGLE_PLACES_API_KEY: z.string().optional(),
   GOOGLE_GEOCODING_API_KEY: z.string().optional(),
+  GOOGLE_MAPS_REQUESTS_ENABLED: booleanFromString,
+  KAKAO_MAPS_REQUESTS_ENABLED: booleanFromString,
   DEBUG_MODE: booleanFromString,
 });
 

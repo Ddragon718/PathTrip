@@ -16,6 +16,7 @@ import {
   discoveryPlaceInput,
 } from '../../packages/api-client/dist/index.js';
 import { env } from '../../dist/config/env.js';
+import { apiUsageService } from '../../dist/modules/api-usage/api-usage.service.js';
 
 const candidate = (id, count, rating) => ({
   id,
@@ -95,6 +96,7 @@ test('카카오에 존재하지 않는 평점·리뷰를 만들지 않고 잘못
 });
 
 test('Google 요청은 지역·분류·명시적 필드만 전달하고 서버 오류를 변환한다', async (t) => {
+  t.mock.method(apiUsageService, 'reserve', async () => {});
   const original = env.GOOGLE_PLACES_API_KEY;
   t.after(() => {
     env.GOOGLE_PLACES_API_KEY = original;

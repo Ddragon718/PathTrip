@@ -1316,3 +1316,15 @@ Query: `region`(1–100자, 필수), `category`(TOURIST_SPOT/RESTAURANT/CAFE/PHO
 위치는 위도 -90~90, 경도 -180~180, 정확도 0~100m이며 측정 후 2분 이내여야 한다. 인증 유효기간은 24시간. `regionId`는 지역 조회로 얻은 Google place ID(최대 256자)다. `category`는 장소 추천과 같은 6개 분류. `placeName` 1–150자, `address` 선택 1–300자, `note` 10–1000자. 인증 여부·작성자 ID를 본문에 보내면 거부한다.
 
 목록 item: `{ id, placeName, address, category, note, author, verifiedAt, createdAt, canDelete }`. `verification`은 요청 회원의 현재 지역 인증 `{ expiresAt }` 또는 null이며 만료된 인증을 반환하지 않는다. 방문자 글은 최신순, 자신의 글 또는 관리자 계정만 삭제 가능. 정확한 위치는 저장·응답하지 않는다. 모든 성공은 204를 제외하고 `{ success: true, data }` 형식이다.
+
+# 외부 지도 API 비용 보호 오류
+
+지도 검색, 추천 탐색, 방문 지역 확인/인증, Google 저장 장소 조회는 서버의 비용 보호 설정을 따른다. 새 HTTP 경로는 추가하지 않는다.
+
+| HTTP | code | 의미 |
+| --- | --- | --- |
+| 503 | `MAP_REQUESTS_DISABLED` | 공급자 호출 활성화 전. 키가 있어도 외부 요청하지 않음 |
+| 429 | `MAP_USAGE_LIMIT_REACHED` | 앱 전체 일간 또는 월간 요청 한도 소진 |
+| 503 | `MAP_USAGE_UNAVAILABLE` | 사용량 기록 실패. 외부 요청을 보내지 않음 |
+
+기존 응답의 `{ success: false, code, message }` 형식을 유지한다. Google 저장 장소 목록은 기존 `locationUnavailable` 처리로 해당 위치를 제외한다. 한도와 계정 설정은 [API 비용 보호](api-cost-protection.md)를 참고한다.

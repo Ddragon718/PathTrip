@@ -1,6 +1,7 @@
 import { env } from '../../config/env.js';
 import { ERROR_CODE } from '../../constants/error-code.js';
 import { AppError } from '../../utils/AppError.js';
+import { apiUsageService } from '../api-usage/api-usage.service.js';
 import {
   kakaoAddressResponseSchema,
   kakaoKeywordResponseSchema,
@@ -19,6 +20,7 @@ const requestKakao = async (
     );
   }
 
+  await apiUsageService.reserve('KAKAO_LOCAL');
   try {
     const response = await fetch(
       `https://dapi.kakao.com${path}?${params.toString()}`,
@@ -50,6 +52,7 @@ export const mapsClient = {
         'Google 장소 검색을 준비 중이에요. 잠시 후 다시 시도해 주세요.'
       );
     }
+    await apiUsageService.reserve('GOOGLE_TEXT_SEARCH');
     try {
       const response = await fetch(
         'https://places.googleapis.com/v1/places:searchText',

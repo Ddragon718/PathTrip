@@ -10,6 +10,7 @@ import {
   communityQuerySchema,
 } from '../../dist/modules/community/community.dto.js';
 import { env } from '../../dist/config/env.js';
+import { apiUsageService } from '../../dist/modules/api-usage/api-usage.service.js';
 
 const freshLocation = () => ({
   regionId: 'okinawa',
@@ -187,6 +188,7 @@ test('지역별 목록에 원래 인증 시각·삭제 권한을 표시하고 �
 });
 
 test('역지오코딩은 도시·행정구역 ID만 사용하며 POI/국가를 인증 지역으로 쓰지 않는다', async (t) => {
+  t.mock.method(apiUsageService, 'reserve', async () => {});
   const original = env.GOOGLE_GEOCODING_API_KEY;
   t.after(() => {
     env.GOOGLE_GEOCODING_API_KEY = original;

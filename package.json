@@ -37,6 +37,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "test": "npm run build && npm run build --workspace @pathtrip/api-client && node --test tests/unit/*.test.mjs",
     "test:unit": "npm test",
+    "test:integration:api-usage": "npm run build && node --test tests/integration/api-usage.test.mjs",
     "db:up": "docker compose up -d database",
     "db:down": "docker compose down",
     "db:migrate": "prisma migrate dev",

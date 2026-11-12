@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { env } from '../../config/env.js';
 import { ERROR_CODE } from '../../constants/error-code.js';
 import { AppError } from '../../utils/AppError.js';
+import { apiUsageService } from '../api-usage/api-usage.service.js';
 
 const responseSchema = z.object({
   status: z.string(),
@@ -29,6 +30,7 @@ async function geocode(query: Record<string, string>) {
       ERROR_CODE.MAP_API_ERROR,
       '지역 인증용 Google Geocoding API 연결이 필요합니다.'
     );
+  await apiUsageService.reserve('GOOGLE_GEOCODING');
   const params = new URLSearchParams({
     ...query,
     language: 'ko',

@@ -174,3 +174,16 @@ model VisitorRecommendation {
   @@index([regionId, category, deletedAt, createdAt])
   @@map("visitor_recommendations")
 }
+
+// Request attempts only; no API keys, queries, locations or provider content.
+model ApiUsage {
+  service      String   @id
+  day          String   @db.VarChar(10)
+  month        String   @db.VarChar(7)
+  dailyCount   Int      @map("daily_count")
+  monthlyCount Int      @map("monthly_count")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("api_usage")
+}

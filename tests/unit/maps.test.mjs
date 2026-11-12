@@ -4,6 +4,7 @@ import { mapSearchQuerySchema } from '../../dist/modules/maps/maps.dto.js';
 import { mapsService } from '../../dist/modules/maps/maps.service.js';
 import { mapsClient } from '../../dist/modules/maps/maps.client.js';
 import { env } from '../../dist/config/env.js';
+import { apiUsageService } from '../../dist/modules/api-usage/api-usage.service.js';
 import {
   createTripSchema,
   updateTripSchema,
@@ -142,6 +143,7 @@ test('검색은 선택한 공급자로만 분기하고 같은 좌표 형식으�
 });
 
 test('Google 검색은 키를 서버 헤더로만 보내며 실패/잘못된 좌표를 처리한다', async (t) => {
+  t.mock.method(apiUsageService, 'reserve', async () => {});
   const originalKey = env.GOOGLE_PLACES_API_KEY;
   t.after(() => {
     env.GOOGLE_PLACES_API_KEY = originalKey;

@@ -2,6 +2,10 @@ import { env } from '../../config/env.js';
 import { ERROR_CODE } from '../../constants/error-code.js';
 import { AppError } from '../../utils/AppError.js';
 import {
+  apiUsageService,
+  type MeteredApi,
+} from '../api-usage/api-usage.service.js';
+import {
   googleDiscoveryPlaceSchema,
   googleDiscoveryResponseSchema,
   kakaoDiscoveryResponseSchema,
@@ -32,6 +36,7 @@ const basicFields =
   'id,displayName,formattedAddress,location,googleMapsUri,attributions,businessStatus';
 
 async function googleRequest(
+  service: MeteredApi,
   path: string,
   fields: string,
   body?: object
@@ -42,6 +47,7 @@ async function googleRequest(
       ERROR_CODE.MAP_API_ERROR,
       'Google Places 키를 연결하면 이 지역의 실제 추천을 볼 수 있어요.'
     );
+  await apiUsageService.reserve(service);
   try {
     const response = await fetch(`https://places.googleapis.com/v1/${path}`, {
       method: body ? 'POST' : 'GET',
@@ -68,6 +74,7 @@ export const discoveryClient = {
   async google(region: string, category: DiscoveryCategory, keyword: string) {
     const type = googleTypes[category];
     const raw = await googleRequest(
+      'GOOGLE_TEXT_SEARCH',
       'places:searchText',
       `${basicFields
         .split(',')
@@ -93,6 +100,7 @@ export const discoveryClient = {
   async googleDetails(id: string) {
     const result = googleDiscoveryPlaceSchema.safeParse(
       await googleRequest(
+        'GOOGLE_PLACE_DETAILS',
         `places/${encodeURIComponent(id)}?languageCode=ko`,
         basicFields
       )
@@ -119,6 +127,7 @@ export const discoveryClient = {
     });
     const type = kakaoTypes[category];
     if (type) params.set('category_group_code', type);
+    await apiUsageService.reserve('KAKAO_LOCAL');
     try {
       const response = await fetch(
         `https://dapi.kakao.com/v2/local/search/keyword.json?${params}`,
