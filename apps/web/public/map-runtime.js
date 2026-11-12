@@ -171,6 +171,11 @@
     clearTimeout(timeout);
     fail();
   };
+  if (config.disabledMessage) {
+    clearTimeout(timeout);
+    fail(config.disabledMessage);
+    return;
+  }
   if (!config.key) {
     clearTimeout(timeout);
     fail(

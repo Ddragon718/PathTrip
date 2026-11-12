@@ -31,6 +31,10 @@ npm run build
 예제 파일을 참고해 실제 환경 파일을 만드세요. 이미 있는 파일은 덮어쓰지 말고 필요한 항목만 추가합니다.
 실제 키를 Git이나 채팅에 붙여 넣지 마세요.
 
+`npm run maps:setup`으로 기존 값을 보존하며 입력 칸을 준비하고, `npm run maps:status`로 키 원문 없이 준비 상태를 확인할 수 있습니다. 상세 발급 순서는 [API 키 안내](api-keys-guide.md)를 따르세요.
+
+무료 테스트 보호를 위해 서버의 `GOOGLE_MAPS_REQUESTS_ENABLED` / `KAKAO_MAPS_REQUESTS_ENABLED`와 웹의 `GOOGLE_MAPS_WEB_ENABLED` / `KAKAO_MAPS_WEB_ENABLED`는 기본 `false`입니다. 키 입력만으로 실행되지 않습니다. 공급자 무료 쿼터와 할당량 설정을 확인한 뒤 해당 공급자만 활성화합니다. [API 비용 보호](api-cost-protection.md)
+
 | 환경 파일             | 변수                                  | 용도                                                    |
 | --------------------- | ------------------------------------- | ------------------------------------------------------- |
 | 루트 `.env`           | `KAKAO_MAP_REST_API_KEY`              | 서버의 카카오 장소 검색·주소 변환                       |

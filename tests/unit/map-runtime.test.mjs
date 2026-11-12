@@ -9,7 +9,7 @@ const source = readFileSync(
 );
 
 // A tiny SDK/DOM harness: no external map requests, credentials or browser state.
-function harness(provider, key = 'fake-test-key') {
+function harness(provider, key = 'fake-test-key', disabledMessage = '') {
   const status = { hidden: false, textContent: '' };
   const scripts = [];
   const messages = [];
@@ -62,6 +62,7 @@ function harness(provider, key = 'fake-test-key') {
   const config = {
     provider,
     key,
+    disabledMessage,
     destination: 'INTERNATIONAL',
     mapId: 'DEMO_MAP_ID',
   };
@@ -138,6 +139,14 @@ const points = [
 ];
 
 for (const provider of ['KAKAO', 'GOOGLE']) {
+  test(`${provider}: 비용 보호 중에는 키가 있어도 SDK 스크립트와 지도를 생성하지 않는다`, () => {
+    const map = harness(provider, 'fake-test-key', '비용 보호 중');
+    assert.equal(map.scripts.length, 0);
+    assert.equal(map.maps.length, 0);
+    assert.equal(map.status.textContent, '비용 보호 중');
+    assert.equal(map.messages[0].type, 'PATHTRIP_MAP_ERROR');
+  });
+
   test(`${provider}: 키 누락 시 외부 SDK를 요청하지 않고 안내한다`, () => {
     const map = harness(provider, '');
     assert.equal(map.scripts.length, 0);
