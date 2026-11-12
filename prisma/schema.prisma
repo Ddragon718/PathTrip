@@ -86,6 +86,7 @@ model Place {
   id              Int           @id @default(autoincrement())
   tripId          Int           @map("trip_id")
   name            String
+  googlePlaceId   String?       @map("google_place_id")
   category        PlaceCategory
   address         String?
   latitude        Float

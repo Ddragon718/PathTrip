@@ -54,6 +54,7 @@ test('모든 보호 API가 인증 없이 접근을 차단한다', async () => {
     '/api/v1/places/1',
     '/api/v1/trips/1/routes',
     '/api/v1/maps/search?q=제주',
+    '/api/v1/discovery?region=오키나와',
   ];
   await withServer(async (baseUrl) => {
     for (const path of paths) {

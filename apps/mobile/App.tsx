@@ -8,7 +8,6 @@ import {
   type MapPreference,
   type MapProvider,
   type CreatePlaceInput,
-  type MapSearchResult,
   type OptimizationType,
   type Place,
   type PlaceCategory,
@@ -19,6 +18,7 @@ import {
   type User,
 } from '@pathtrip/api-client';
 import DateTimePicker from './components/AppDatePicker';
+import { PlaceDiscovery } from './components/PlaceDiscovery';
 import { AppPressable as Pressable } from './components/AppPressable';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
@@ -1025,6 +1025,7 @@ function TripScreen({
         </View>
       )}
       <AddPlaceModal
+        region={trip.region}
         provider={provider}
         isDemo={isDemo}
         visible={showPlace}
@@ -1096,6 +1097,16 @@ function PlaceCard({
           {place.priority === 'HIGH' ? '꼭 가기' : '가고 싶어요'}
         </Text>
         <Text style={styles.placeName}>{place.name}</Text>
+        {place.googlePlaceId && (
+          <Text style={{ color: '#5E5E5E', fontSize: 12, fontWeight: '400' }}>
+            Google Maps
+          </Text>
+        )}
+        {place.attributions?.map((attribution, i) => (
+          <Text key={i} style={styles.placeAddress}>
+            {attribution.provider}
+          </Text>
+        ))}
         <Text numberOfLines={1} style={styles.placeAddress}>
           {place.address ?? '주소 미입력'} · {place.stayTimeMinutes}분
         </Text>
@@ -1379,88 +1390,19 @@ function DateField({
 
 function AddPlaceModal({
   provider,
+  region,
   visible,
   isDemo,
   onClose,
   onSubmit,
 }: {
   provider: MapProvider;
+  region: string;
   visible: boolean;
   isDemo: boolean;
   onClose: () => void;
   onSubmit: (input: CreatePlaceInput) => Promise<void>;
 }) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<MapSearchResult[]>([]);
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
-  const [category, setCategory] = useState<PlaceCategory>('TOURIST_SPOT');
-  const [busy, setBusy] = useState(false);
-  const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (visible) return;
-    setQuery('');
-    setResults([]);
-    setName('');
-    setAddress('');
-    setLatitude('');
-    setLongitude('');
-    setCategory('TOURIST_SPOT');
-    setBusy(false);
-    setSearching(false);
-    setSearchError(null);
-  }, [visible]);
-
-  const search = async () => {
-    if (!query.trim() || searching) return;
-    setSearching(true);
-    setSearchError(null);
-    setResults([]);
-    try {
-      const nextResults = isDemo
-        ? demoPlaces
-            .filter((place) =>
-              `${place.name} ${place.address ?? ''}`.includes(query.trim())
-            )
-            .map((place) => ({
-              name: place.name,
-              address: place.address ?? '',
-              latitude: place.latitude,
-              longitude: place.longitude,
-            }))
-        : await api.searchPlaces(query.trim(), provider);
-      setResults(nextResults);
-      if (nextResults.length === 0)
-        setSearchError('검색 결과가 없어요. 다른 이름으로 찾아보세요.');
-    } catch (error) {
-      setSearchError(apiErrorText(error));
-    } finally {
-      setSearching(false);
-    }
-  };
-
-  const selectResult = (result: MapSearchResult) => {
-    lightTap();
-    setName(result.name);
-    setAddress(result.address);
-    setLatitude(String(result.latitude));
-    setLongitude(String(result.longitude));
-    setResults([]);
-    setQuery(result.name);
-  };
-
-  const latitudeNumber = Number(latitude);
-  const longitudeNumber = Number(longitude);
-  const hasValidLocation =
-    Number.isFinite(latitudeNumber) &&
-    Number.isFinite(longitudeNumber) &&
-    latitude.length > 0 &&
-    longitude.length > 0;
-
   return (
     <Sheet
       visible={visible}
@@ -1468,126 +1410,19 @@ function AddPlaceModal({
       title="어디에 가고 싶나요?"
       subtitle={
         isDemo
-          ? '미리보기 · 제주 샘플 장소를 검색합니다.'
-          : `${mapProviderLabel[provider]}에서 장소와 주소를 검색해요.`
+          ? `${region} · 미리보기 샘플`
+          : `${region} · ${mapProviderLabel[provider]}`
       }
     >
-      <View style={styles.searchRow}>
-        <View style={styles.searchInputWrap}>
-          <Ionicons name="search" size={18} color={palette.muted} />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={() => {
-              void search();
-            }}
-            placeholder="장소 이름 또는 주소"
-            placeholderTextColor="#9CA6A0"
-            returnKeyType="search"
-            style={styles.searchInput}
-            accessibilityLabel="장소 검색어"
-          />
-        </View>
-        <Pressable
-          style={styles.searchButton}
-          onPress={() => {
-            void search();
-          }}
-          disabled={searching || !query.trim()}
-          accessibilityRole="button"
-          accessibilityLabel="장소 검색"
-        >
-          {searching ? (
-            <ActivityIndicator color={palette.white} size="small" />
-          ) : (
-            <Text style={styles.searchButtonText}>검색</Text>
-          )}
-        </Pressable>
-      </View>
-      {searchError && <Text style={styles.searchError}>{searchError}</Text>}
-      {results.length > 0 && (
-        <View style={styles.searchResults}>
-          {results.slice(0, 5).map((result, index) => (
-            <Pressable
-              key={`${result.name}-${result.latitude}-${index}`}
-              style={styles.searchResult}
-              onPress={() => selectResult(result)}
-              accessibilityRole="button"
-              accessibilityLabel={`${result.name} 선택`}
-            >
-              <View style={styles.searchResultIcon}>
-                <Ionicons name="location" size={17} color={palette.orange} />
-              </View>
-              <View style={styles.searchResultCopy}>
-                <Text style={styles.searchResultName}>{result.name}</Text>
-                <Text style={styles.searchResultAddress} numberOfLines={1}>
-                  {result.address}
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={palette.muted}
-              />
-            </Pressable>
-          ))}
-        </View>
-      )}
-      {name ? (
-        <View style={styles.selectedPlace}>
-          <Ionicons name="checkmark-circle" size={21} color={palette.forest} />
-          <View style={styles.flex}>
-            <Text style={styles.selectedPlaceName}>{name}</Text>
-            <Text style={styles.selectedPlaceAddress} numberOfLines={1}>
-              {address}
-            </Text>
-          </View>
-        </View>
-      ) : null}
-      <Text style={styles.inputLabel}>분류</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipRow}
-      >
-        {categories.map((item) => (
-          <ChoiceChip
-            key={item.value}
-            label={`${item.icon} ${item.label}`}
-            active={category === item.value}
-            onPress={() => setCategory(item.value)}
-          />
-        ))}
-      </ScrollView>
-      <View style={styles.coordinateNote}>
-        <Ionicons
-          name="information-circle-outline"
-          size={16}
-          color={palette.muted}
+      {visible && (
+        <PlaceDiscovery
+          region={region}
+          provider={provider}
+          isDemo={isDemo}
+          api={api}
+          onSubmit={onSubmit}
         />
-        <Text style={styles.coordinateNoteText}>
-          {hasValidLocation
-            ? '선택한 장소의 위치가 지도에 표시됩니다.'
-            : '검색 결과에서 장소를 하나 선택해 주세요.'}
-        </Text>
-      </View>
-      <PrimaryButton
-        label={busy ? '담는 중…' : '여행에 담기'}
-        disabled={busy || !name || !hasValidLocation}
-        onPress={async () => {
-          setBusy(true);
-          await onSubmit({
-            name,
-            category,
-            ...(address ? { address } : {}),
-            latitude: latitudeNumber,
-            longitude: longitudeNumber,
-            priority: 'MEDIUM',
-            stayTimeMinutes: 60,
-          });
-          setBusy(false);
-        }}
-      />
+      )}
     </Sheet>
   );
 }

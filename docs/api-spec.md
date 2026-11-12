@@ -1292,3 +1292,12 @@ POST /api/v1/creators/:creatorId/follow
 POST /api/v1/places/:placeId/inquiries
 GET /api/v1/places/:placeId/inquiries
 ```
+# 지역별 장소 추천
+
+`GET /api/v1/discovery` — Bearer 인증 필수, 분당 30회 IP 제한.
+
+Query: `region`(1–100자, 필수), `category`(TOURIST_SPOT/RESTAURANT/CAFE/PHOTO_SPOT/HOTEL/ETC, 기본 TOURIST_SPOT), `provider`(GOOGLE/KAKAO, 기본 GOOGLE), `sort`(REVIEWS/RATING/RELEVANCE, 기본 REVIEWS), `q`(선택, 최대 100자).
+
+성공: `{ success: true, data: { items: [{ id, name, address, latitude, longitude, category, source, rating, reviewCount, sourceUrl, attributions, googlePlaceId? }], sort, note } }`. 평점·리뷰 수가 없으면 `null`. 카카오는 항상 RELEVANCE. 오류: INVALID_INPUT(400), UNAUTHORIZED(401), MAP_API_ERROR(502 외부 오류/503 키 미설정), 429 요청 제한.
+
+장소 생성 `POST /api/v1/trips/:tripId/places`에 선택 필드 `googlePlaceId`(1–256자 영숫자/밑줄/하이픈)를 추가한다. 기존 필수 입력은 동일하다. ID가 있으면 공급자 정보를 조회해 유효성을 확인하고 이름·주소·좌표 대신 ID만 영구 저장한다. 장소 상세/여행 상세에는 최신 정보 및 `googlePlaceId`, `attributions`를 반환한다. 조회 실패 시 `locationUnavailable: true`이며 좌표를 사용하면 안 된다. Google 장소의 이름/주소/좌표 수정은 INVALID_INPUT(400). 동선 계산은 최신 위치를 가져오지 못하면 MAP_API_ERROR로 중단한다.

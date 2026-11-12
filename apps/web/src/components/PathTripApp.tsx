@@ -1,4 +1,5 @@
 'use client';
+import { PlaceDiscovery } from './PlaceDiscovery';
 
 import {
   ApiError,
@@ -9,7 +10,6 @@ import {
   type DestinationType,
   type MapPreference,
   type MapProvider,
-  type MapSearchResult,
   type CreatePlaceInput,
   type OptimizationType,
   type Place,
@@ -1366,6 +1366,7 @@ function TripWorkspace({
       </section>
       {showPlaceForm && (
         <AddPlaceModal
+          region={trip.region}
           provider={provider}
           isDemo={isDemo}
           onClose={() => setShowPlaceForm(false)}
@@ -1425,6 +1426,16 @@ function PlaceRow({
               : '시간 되면'}
         </span>
         <h3>{place.name}</h3>
+        {place.googlePlaceId && (
+          <span className="google-attribution" translate="no">
+            Google Maps
+          </span>
+        )}
+        {place.attributions?.map((attribution, i) => (
+          <span className="discovery-note" key={i}>
+            {attribution.provider}
+          </span>
+        ))}
         <p>
           {place.address ?? '주소 미입력'} · 약 {place.stayTimeMinutes}분
         </p>
@@ -1442,54 +1453,17 @@ function PlaceRow({
 
 function AddPlaceModal({
   provider,
+  region,
   isDemo,
   onClose,
   onSubmit,
 }: {
   provider: MapProvider;
+  region: string;
   isDemo: boolean;
   onClose: () => void;
   onSubmit: (input: CreatePlaceInput) => Promise<void>;
 }) {
-  const [form, setForm] = useState({
-    name: '',
-    category: 'TOURIST_SPOT' as PlaceCategory,
-    address: '',
-    latitude: '',
-    longitude: '',
-    priority: 'MEDIUM' as const,
-    stayTimeMinutes: '60',
-  });
-  const [busy, setBusy] = useState(false);
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<MapSearchResult[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const search = async (event: FormEvent) => {
-    event.preventDefault();
-    if (searching || !query.trim()) return;
-    setSearching(true);
-    setSearchError(null);
-    setResults([]);
-    try {
-      const found = isDemo
-        ? demoPlaces
-            .filter((place) =>
-              `${place.name} ${place.address}`.includes(query.trim())
-            )
-            .map((place) => ({ ...place, address: place.address ?? '' }))
-        : await api.searchPlaces(query.trim(), provider);
-      setResults(found);
-      if (!found.length)
-        setSearchError(
-          '검색 결과가 없어요. 지역과 장소 이름을 함께 입력해 보세요.'
-        );
-    } catch (error) {
-      setSearchError(errorMessage(error));
-    } finally {
-      setSearching(false);
-    }
-  };
   return (
     <div
       className="modal-backdrop"
@@ -1498,155 +1472,27 @@ function AddPlaceModal({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <section className="modal modal-wide" role="dialog" aria-modal="true">
-        <button className="icon-button modal-close" onClick={onClose}>
+      <section
+        className="modal modal-wide"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="discovery-title"
+      >
+        <button
+          className="icon-button modal-close"
+          aria-label="닫기"
+          onClick={onClose}
+        >
           <CloseIcon />
         </button>
-        <span className="modal-icon">
-          <PinIcon />
-        </span>
-        <span className="eyebrow">새로운 장소</span>
-        <h2>어디에 가고 싶나요?</h2>
-        <p>
-          {mapProviderLabel[provider]}에서 장소를 검색해 여행에 담아보세요.
-          {isDemo && ' 미리보기에서는 제주 샘플 장소를 검색합니다.'}
-        </p>
-        <form className="place-search" onSubmit={search}>
-          <input
-            aria-label="장소 검색어"
-            placeholder="예: 도쿄 센소지"
-            value={query}
-            maxLength={100}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-          <button
-            className="button button-secondary"
-            disabled={searching || !query.trim()}
-          >
-            {searching ? '검색 중…' : '검색'}
-          </button>
-        </form>
-        {searchError && <p role="alert">{searchError}</p>}
-        <div className="place-search-results">
-          {results.map((result, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => {
-                setForm({
-                  ...form,
-                  name: result.name,
-                  address: result.address,
-                  latitude: String(result.latitude),
-                  longitude: String(result.longitude),
-                });
-                setResults([]);
-              }}
-            >
-              <b>{result.name}</b>
-              <span>{result.address}</span>
-            </button>
-          ))}
-        </div>
-        <form
-          className="form-stack"
-          onSubmit={async (event) => {
-            event.preventDefault();
-            setBusy(true);
-            await onSubmit({
-              name: form.name,
-              category: form.category,
-              ...(form.address ? { address: form.address } : {}),
-              latitude: Number(form.latitude),
-              longitude: Number(form.longitude),
-              priority: form.priority,
-              stayTimeMinutes: Number(form.stayTimeMinutes),
-            });
-            setBusy(false);
-          }}
-        >
-          <Field label="장소 이름">
-            <input
-              value={form.name}
-              onChange={(event) =>
-                setForm({ ...form, name: event.target.value })
-              }
-              placeholder="예: 함덕 해수욕장"
-              required
-            />
-          </Field>
-          <div className="field-row">
-            <Field label="분류">
-              <select
-                value={form.category}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    category: event.target.value as PlaceCategory,
-                  })
-                }
-              >
-                {Object.entries(categoryLabel).map(([value, label]) => (
-                  <option value={value} key={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="머무는 시간">
-              <input
-                type="number"
-                min="0"
-                max="1440"
-                value={form.stayTimeMinutes}
-                onChange={(event) =>
-                  setForm({ ...form, stayTimeMinutes: event.target.value })
-                }
-                required
-              />
-            </Field>
-          </div>
-          <Field label="주소">
-            <input
-              value={form.address}
-              onChange={(event) =>
-                setForm({ ...form, address: event.target.value })
-              }
-              placeholder="선택 입력"
-            />
-          </Field>
-          <div className="field-row">
-            <Field label="위도">
-              <input
-                type="number"
-                step="any"
-                min="-90"
-                max="90"
-                value={form.latitude}
-                onChange={(event) =>
-                  setForm({ ...form, latitude: event.target.value })
-                }
-                required
-              />
-            </Field>
-            <Field label="경도">
-              <input
-                type="number"
-                step="any"
-                min="-180"
-                max="180"
-                value={form.longitude}
-                onChange={(event) =>
-                  setForm({ ...form, longitude: event.target.value })
-                }
-                required
-              />
-            </Field>
-          </div>
-          <button className="button button-primary button-full" disabled={busy}>
-            {busy ? '담는 중…' : '여행에 담기'} <ArrowIcon />
-          </button>
-        </form>
+        <h2 id="discovery-title">어디에 가고 싶나요?</h2>
+        <PlaceDiscovery
+          region={region}
+          provider={provider}
+          isDemo={isDemo}
+          api={api}
+          onSubmit={onSubmit}
+        />
       </section>
     </div>
   );

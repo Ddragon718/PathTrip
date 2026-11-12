@@ -12,6 +12,7 @@ import { tripRepository } from '../trips/trip.repository.js';
 import { tripService } from '../trips/trip.service.js';
 import { routeRepository } from './route.repository.js';
 import type { RecommendRouteInput, SaveRouteInput } from './route.validator.js';
+import { resolvePlaceData } from '../places/place-data.js';
 
 const assertTripOwner = async (
   tripId: number,
@@ -23,7 +24,11 @@ const assertTripOwner = async (
 export const routeService = {
   async recommend(userId: number, tripId: number, input: RecommendRouteInput) {
     await assertTripOwner(tripId, userId);
-    const places = await placeRepository.findManyByTrip(tripId);
+    const places = await Promise.all(
+      (await placeRepository.findManyByTrip(tripId)).map((place) =>
+        resolvePlaceData(place, true)
+      )
+    );
     if (places.length < 2) {
       throw new AppError(
         400,
@@ -77,20 +82,25 @@ export const routeService = {
   async list(userId: number, tripId: number) {
     await assertTripOwner(tripId, userId);
     const routes = await routeRepository.findManyByTrip(tripId);
-    return routes.map((route) => ({
-      id: route.id,
-      name: route.name,
-      optimizationType: route.optimizationType,
-      totalDistanceMeters: route.totalDistanceMeters,
-      totalMoveTimeMinutes: route.totalMoveTimeMinutes,
-      places: route.places.map((item) => ({
-        placeId: item.placeId,
-        name: item.place.name,
-        visitOrder: item.visitOrder,
-        estimatedArrivalTime: item.estimatedArrivalTime?.toISOString() ?? null,
-        moveTimeFromPreviousMinutes: item.moveTimeFromPreviousMinutes,
-        distanceFromPreviousMeters: item.distanceFromPreviousMeters,
-      })),
-    }));
+    return Promise.all(
+      routes.map(async (route) => ({
+        id: route.id,
+        name: route.name,
+        optimizationType: route.optimizationType,
+        totalDistanceMeters: route.totalDistanceMeters,
+        totalMoveTimeMinutes: route.totalMoveTimeMinutes,
+        places: await Promise.all(
+          route.places.map(async (item) => ({
+            placeId: item.placeId,
+            name: (await resolvePlaceData(item.place)).name,
+            visitOrder: item.visitOrder,
+            estimatedArrivalTime:
+              item.estimatedArrivalTime?.toISOString() ?? null,
+            moveTimeFromPreviousMinutes: item.moveTimeFromPreviousMinutes,
+            distanceFromPreviousMeters: item.distanceFromPreviousMeters,
+          }))
+        ),
+      }))
+    );
   },
 };

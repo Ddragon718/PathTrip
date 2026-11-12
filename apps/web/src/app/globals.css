@@ -2074,3 +2074,108 @@ svg {
   font-size: 12px;
   line-height: 1.6;
 }
+.discovery {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+.discovery h3 {
+  margin: 0;
+  font-size: 18px;
+}
+.discovery p {
+  color: var(--muted, #718078);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 6px 0;
+}
+.discovery-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0;
+}
+.discovery-chips button {
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid #dfded7;
+  border-radius: 24px;
+  background: #fffdf9;
+  color: #173e35;
+  cursor: pointer;
+}
+.discovery-chips button[aria-pressed='true'] {
+  background: #d7ea8a;
+  border-color: #d7ea8a;
+  font-weight: 700;
+}
+.discovery-search {
+  display: flex;
+  gap: 10px;
+}
+.discovery-search input {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid #dfded7;
+  padding: 14px;
+  border-radius: 14px;
+}
+.discovery .discovery-note,
+.discovery-note {
+  font-size: 12px;
+  color: #718078;
+  line-height: 1.6;
+}
+.discovery-list {
+  display: grid;
+  gap: 12px;
+}
+.discovery-card {
+  border: 1px solid #dfded7;
+  border-radius: 20px;
+  background: #fff;
+  padding: 20px;
+  display: grid;
+  gap: 12px;
+}
+.discovery-card-heading {
+  display: flex;
+  gap: 12px;
+}
+.discovery-number {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 12px;
+  background: #f5f1e8;
+}
+.discovery-stats {
+  color: #28584c;
+  font-size: 13px;
+}
+.google-attribution {
+  color: #5e5e5e;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.discovery-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.discovery-actions a {
+  font-size: 13px;
+  color: #718078;
+}
+.discovery-actions button {
+  margin-left: auto;
+}
+.discovery-empty {
+  padding: 30px 10px;
+  text-align: center;
+}

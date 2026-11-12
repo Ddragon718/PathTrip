@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { coercedDatabaseIdSchema } from '../shared/schema.validator.js';
+import { googlePlaceIdSchema } from '../discovery/discovery.dto.js';
 
 const placeCategory = z.enum([
   'RESTAURANT',
@@ -22,6 +23,7 @@ export const placeIdParamsSchema = z.object({
 export const createPlaceSchema = z
   .object({
     name: z.string().trim().min(1).max(150),
+    googlePlaceId: googlePlaceIdSchema.optional(),
     category: placeCategory,
     address: z.string().trim().min(1).max(300).optional(),
     latitude: z.number().min(-90).max(90),

@@ -57,6 +57,9 @@ export interface Place {
   longitude: number;
   priority: PlacePriority;
   stayTimeMinutes: number;
+  googlePlaceId?: string;
+  locationUnavailable?: boolean;
+  attributions?: Array<{ provider: string; providerUri?: string }>;
 }
 
 export interface TripDetail extends Trip {
@@ -94,6 +97,29 @@ export interface MapSearchResult {
   longitude: number;
 }
 
+export interface DiscoveryInput {
+  region: string;
+  category: PlaceCategory;
+  provider: MapProvider;
+  sort?: 'REVIEWS' | 'RATING' | 'RELEVANCE';
+  q?: string;
+}
+export interface DiscoveryPlace extends MapSearchResult {
+  id: string;
+  category: PlaceCategory;
+  source: MapProvider | 'DEMO';
+  googlePlaceId?: string;
+  rating: number | null;
+  reviewCount: number | null;
+  sourceUrl: string | null;
+  attributions: Array<{ provider: string; providerUri?: string }>;
+}
+export interface DiscoveryResult {
+  items: DiscoveryPlace[];
+  sort: 'REVIEWS' | 'RATING' | 'RELEVANCE';
+  note: string;
+}
+
 export interface CreateTripInput {
   title: string;
   region: string;
@@ -104,6 +130,7 @@ export interface CreateTripInput {
 }
 
 export interface CreatePlaceInput {
+  googlePlaceId?: string;
   name: string;
   category: PlaceCategory;
   address?: string;
@@ -257,6 +284,10 @@ export const createPathTripClient = ({
       request<MapSearchResult[]>(
         `/api/v1/maps/search?q=${encodeURIComponent(query)}&provider=${provider}`
       ),
+    discoverPlaces: (input: DiscoveryInput) =>
+      request<DiscoveryResult>(
+        `/api/v1/discovery?${new URLSearchParams({ region: input.region, category: input.category, provider: input.provider, sort: input.sort ?? 'REVIEWS', q: input.q ?? '' })}`
+      ),
     recommendRoute: (tripId: number, input: RecommendRouteInput) =>
       request<RouteRecommendation>(`/api/v1/trips/${tripId}/routes/recommend`, {
         method: 'POST',
@@ -282,3 +313,4 @@ export const createPathTripClient = ({
 };
 
 export type PathTripClient = ReturnType<typeof createPathTripClient>;
+export { discoveryCategories, previewDiscovery } from './discovery-preview.js';

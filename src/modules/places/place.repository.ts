@@ -2,6 +2,7 @@ import type { PlaceCategory, PlacePriority } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 
 export interface PlaceWriteData {
+  googlePlaceId?: string;
   name?: string;
   category?: PlaceCategory;
   address?: string | null;

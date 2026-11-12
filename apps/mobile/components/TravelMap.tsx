@@ -15,7 +15,13 @@ import {
   type MapProvider,
 } from '@pathtrip/api-client';
 
-type Point = { name: string; latitude: number; longitude: number };
+type Point = {
+  name: string;
+  latitude: number;
+  longitude: number;
+  googlePlaceId?: string;
+  locationUnavailable?: boolean;
+};
 const webBase =
   process.env.EXPO_PUBLIC_MAP_WEB_BASE_URL ?? 'http://localhost:3000';
 
@@ -98,10 +104,15 @@ export function TravelMap({
   const web = useRef<WebView>(null);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const visiblePoints = points.filter(
+    (point) =>
+      !point.locationUnavailable &&
+      (provider === 'GOOGLE' || !point.googlePlaceId)
+  );
   const payload = JSON.stringify({
     type: 'PATHTRIP_MAP_DATA',
-    points,
-    connect,
+    points: visiblePoints,
+    connect: connect && visiblePoints.length === points.length,
   });
   const send = () => web.current?.postMessage(payload);
   useEffect(() => {
@@ -123,11 +134,16 @@ export function TravelMap({
 
   return (
     <View style={styles.container}>
+      {visiblePoints.length !== points.length && (
+        <Text style={styles.statusText}>
+          일부 장소는 위치 확인이 필요하거나 Google Maps에서만 표시됩니다.
+        </Text>
+      )}
       {provider === 'GOOGLE' && googleConfigured ? (
         <GoogleMap
           key={destination}
-          points={points}
-          connect={connect}
+          points={visiblePoints}
+          connect={connect && visiblePoints.length === points.length}
           destination={destination}
         />
       ) : provider === 'GOOGLE' ? (

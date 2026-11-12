@@ -1,4 +1,5 @@
 import type { Place, Trip } from '@prisma/client';
+import { resolvePlaceData } from '../places/place-data.js';
 import { ERROR_CODE } from '../../constants/error-code.js';
 import { AppError } from '../../utils/AppError.js';
 import { tripRepository } from './trip.repository.js';
@@ -19,17 +20,6 @@ const serializeTrip = (trip: Trip) => ({
   mapPreference: trip.mapPreference,
   startDate: toDateString(trip.startDate),
   endDate: toDateString(trip.endDate),
-});
-
-const serializePlace = (place: Place) => ({
-  id: place.id,
-  name: place.name,
-  category: place.category,
-  address: place.address,
-  latitude: place.latitude,
-  longitude: place.longitude,
-  priority: place.priority,
-  stayTimeMinutes: place.stayTimeMinutes,
 });
 
 const assertOwner = (trip: Trip | null, userId: number): Trip => {
@@ -96,7 +86,9 @@ export const tripService = {
     const withPlaces = trip as Trip & { places?: Place[] };
     return {
       ...serializeTrip(trip),
-      places: (withPlaces.places ?? []).map(serializePlace),
+      places: await Promise.all(
+        (withPlaces.places ?? []).map((place) => resolvePlaceData(place))
+      ),
     };
   },
 
@@ -117,8 +109,12 @@ export const tripService = {
     const updated = await tripRepository.update(tripId, {
       ...(input.title === undefined ? {} : { title: input.title }),
       ...(input.region === undefined ? {} : { region: input.region }),
-      ...(input.destinationType === undefined ? {} : { destinationType: input.destinationType }),
-      ...(input.mapPreference === undefined ? {} : { mapPreference: input.mapPreference }),
+      ...(input.destinationType === undefined
+        ? {}
+        : { destinationType: input.destinationType }),
+      ...(input.mapPreference === undefined
+        ? {}
+        : { mapPreference: input.mapPreference }),
       ...(input.startDate === undefined ? {} : { startDate }),
       ...(input.endDate === undefined ? {} : { endDate }),
     });
